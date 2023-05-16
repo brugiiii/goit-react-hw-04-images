@@ -1,4 +1,8 @@
 import { useState, useEffect } from 'react';
+import {
+  NotificationContainer,
+  NotificationManager,
+} from 'react-notifications';
 
 import { Searchbar } from './Searchbar';
 import { ImageGallery } from './ImageGallery';
@@ -8,6 +12,7 @@ import { ThreeDots } from 'react-loader-spinner';
 import { Api } from '../api';
 
 import { AppEl } from './App.styled';
+import 'react-notifications/lib/notifications.css';
 
 const api = new Api();
 
@@ -17,11 +22,10 @@ export const App = () => {
   const [images, setImages] = useState([]);
   const [status, setStatus] = useState('idle');
   const [showSpinner, setShowSpinner] = useState(false);
-  const [render, setRender] = useState(true);
 
   useEffect(() => {
-    if (render) {
-      return setRender(false);
+    if (!query) {
+      return;
     }
 
     api.query = query;
@@ -34,7 +38,6 @@ export const App = () => {
       setStatus('resolved');
       setShowSpinner(false);
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, query]);
 
   const loadMore = () => {
@@ -42,8 +45,16 @@ export const App = () => {
     setShowSpinner(true);
   };
 
-  const onSubmit = query => {
-    setQuery(query);
+  const onSubmit = newQuery => {
+    const sameQuery = query === newQuery;
+
+    if (sameQuery || !newQuery) {
+      return sameQuery
+        ? NotificationManager.error('Enter a new query!', 'Invalid query', 3000)
+        : NotificationManager.error('Enter something!', 'Invalid query', 3000);
+    }
+
+    setQuery(newQuery);
     setPage(1);
     setStatus('pending');
   };
@@ -53,7 +64,7 @@ export const App = () => {
       <Searchbar onSubmit={onSubmit} />
 
       {status === 'idle' && (
-        <h2 style={{ margin: '0 auto' }}>Введіть що небудь</h2>
+        <h2 style={{ margin: '0 auto' }}>Please, enter something :)</h2>
       )}
 
       {status === 'pending' && (
@@ -72,14 +83,20 @@ export const App = () => {
               wrapperStyle={{ justifyContent: 'center' }}
             />
           ) : (
-            <Button onClick={loadMore}>Load more</Button>
+            <Button onClick={loadMore} >
+              Load more
+            </Button>
           )}
         </>
       )}
 
       {status === 'rejected' && (
-        <h2 style={{ margin: '0 auto' }}>Нічого не знайдено</h2>
+        <h2 style={{ margin: '0 auto' }}>
+          Nothing was found for your request :(
+        </h2>
       )}
+
+      <NotificationContainer />
     </AppEl>
   );
 };

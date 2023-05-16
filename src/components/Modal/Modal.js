@@ -7,23 +7,23 @@ import { Overlay, ModalEl } from './Modal.styled';
 const root = document.querySelector('[id=modal-root]');
 
 export const Modal = ({ url, alt, onClose }) => {
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => window.addEventListener('keydown', onEsc), []);
+  useEffect(() => {
+    const onEsc = e => {
+      if (e.code === 'Escape') {
+        onClose();
+      }
+    };
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => () => window.removeEventListener('keydown', onEsc), []);
+    window.addEventListener('keydown', onEsc);
 
-  function onEsc(e) {
-    if (e.code === 'Escape') {
-      onClose();
-    }
-  }
+    return () => window.removeEventListener('keydown', onEsc);
+  }, [onClose]);
 
-  function onBackdrop(e) {
+  const onBackdrop = e => {
     if (e.target === e.currentTarget) {
       onClose();
     }
-  }
+  };
 
   return createPortal(
     <Overlay onClick={onBackdrop}>
